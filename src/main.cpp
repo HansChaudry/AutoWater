@@ -1,18 +1,44 @@
 #include <Arduino.h>
 
 // put function declarations here:
-int myFunction(int, int);
+int pumpPin = 7;
+bool pumpState = false;
+void startPump();
+void stopPump();
 
 void setup() {
   // put your setup code here, to run once:
-  int result = myFunction(2, 3);
+  Serial.begin(9600);
+  pinMode(pumpPin, OUTPUT);
 }
 
 void loop() {
   // put your main code here, to run repeatedly:
+  int val;
+  val=analogRead(0);     // sensor Aout pin connected to A0 pin of Ardiuno
+  Serial.println(val);        // print the value in serial monitor
+  if(val > 400){
+    if (!pumpState)
+    {
+      startPump();
+    }
+  }
+  
+  if(val < 400){
+    if(pumpState){
+      stopPump();
+    }
+  }
+  delay(1000);
 }
 
 // put function definitions here:
-int myFunction(int x, int y) {
-  return x + y;
+void startPump() {
+  digitalWrite(pumpPin, HIGH);
+  pumpState = true;
+}
+
+void stopPump(){
+  digitalWrite(pumpPin, LOW);
+  pumpState = false;
 }
