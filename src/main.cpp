@@ -2,16 +2,19 @@
 #include <PumpState.h>
 
 // put function declarations here:
-int pumpPin = 7;
+const int pumpPin = 7;
 PumpState pumpState;
+WaterLevel waterLevel;
 void startPump();
 void stopPump();
+void SetWaterLevel();
 
 void setup() {
   // put your setup code here, to run once:
   Serial.begin(9600);
   pinMode(pumpPin, OUTPUT);
   pumpState = Ready;
+  SetWaterLevel();
 }
 
 void loop() {
@@ -32,16 +35,20 @@ void loop() {
 
 // put function definitions here:
 void startPump() {
-  if(!pumpState){
+  if(waterLevel != Empty){
     digitalWrite(pumpPin, HIGH);
     pumpState = Busy;
   }
-
-  //TODO: check water level. If the level is too low stop the pump. and set pump state to empty
-
+  SetWaterLevel();
 }
 
 void stopPump(){
   digitalWrite(pumpPin, LOW);
   pumpState = Ready;
+  SetWaterLevel();
+}
+
+void SetWaterLevel(){
+  //TODO: check and set water level
+  return;
 }

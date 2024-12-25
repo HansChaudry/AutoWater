@@ -3,7 +3,12 @@
 
 enum PumpState {
     Ready,
-    Busy,
+    Busy
+};
+
+enum WaterLevel {
+    Full,
+    HalfEmpty,
     Empty
 };
 
