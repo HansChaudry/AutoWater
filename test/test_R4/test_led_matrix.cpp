@@ -1,18 +1,8 @@
-/*
-  Play Animation
-
-  Sketch shows animation defined in animation.h
-
-  See the full documentation here:
-  https://docs.arduino.cc/tutorials/uno-r4-wifi/led-matrix
-*/
-
-
-
 #include <Arduino.h>
-#include <Arduino_LED_Matrix.h>
-// Create an instance of the ArduinoLEDMatrix class
-ArduinoLEDMatrix matrix;  
+#include "Arduino_LED_Matrix.h"
+#include "animation.h"
+
+ArduinoLEDMatrix matrix;
 
 void setup() {
   Serial.begin(115200);
