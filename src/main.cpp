@@ -1,54 +1,103 @@
 #include <Arduino.h>
-#include <PumpState.h>
+#include <Wire.h>
+#include <Adafruit_GFX.h>
+#include <Adafruit_SH110X.h>
 
-// put function declarations here:
-const int pumpPin = 7;
-PumpState pumpState;
-WaterLevel waterLevel;
-void startPump();
-void stopPump();
-void SetWaterLevel();
+#define SCREEN_WIDTH 128
+#define SCREEN_HEIGHT 64
+#define OLED_RESET -1
+#define I2C_ADDRESS 0x3C
+
+// Pin Definitions
+const int PUMP_CONTROL_PIN = 7;
+const int MOISTURE_SENSOR_PIN = 0;
+const int WATER_LEVEL_SENSOR_PIN = 3;
+
+// Thresholds and Constants
+const int MOISTURE_THRESHOLD = 350;
+
+// Enum Definitions
+enum PumpState { Ready, Busy };
+enum WaterLevel { Empty, Low, Full };
+
+// Variables
+Adafruit_SH1106G display(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, OLED_RESET);
+PumpState pumpState = Ready;
+WaterLevel waterLevel = Empty;
+int moistureLevel = 0;
+
+// Function Prototypes
+void setupPump();
+void setupDisplay();
+void readMoisture();
+void controlPump();
+void updateDisplay();
+void checkWaterLevel();
 
 void setup() {
-  // put your setup code here, to run once:
-  Serial.begin(9600);
-  pinMode(pumpPin, OUTPUT);
-  pumpState = Ready;
-  SetWaterLevel();
+    Serial.begin(9600);
+    setupPump();
+    setupDisplay();
 }
 
 void loop() {
-  // put your main code here, to run repeatedly:
-  int val;
-  val=analogRead(0);     // sensor Aout pin connected to A0 pin of Ardiuno
-  Serial.println(val);        // print the value in serial monitor
-  
-  if(val > 350){
-    startPump();
-  }
-  else{
-    stopPump();
-  }
-
-  delay(1000);
+    readMoisture();
+    checkWaterLevel();
+    controlPump();
+    updateDisplay();
+    delay(1000);
 }
 
-// put function definitions here:
-void startPump() {
-  if(waterLevel != Empty){
-    digitalWrite(pumpPin, HIGH);
-    pumpState = Busy;
-  }
-  SetWaterLevel();
+void setupPump() {
+    pinMode(PUMP_CONTROL_PIN, OUTPUT);
+    pumpState = Ready;
 }
 
-void stopPump(){
-  digitalWrite(pumpPin, LOW);
-  pumpState = Ready;
-  SetWaterLevel();
+void setupDisplay() {
+    if (!display.begin(I2C_ADDRESS)) {
+        Serial.println("Display initialization failed!");
+        while (1); // Halt
+    }
+    display.display();
+    delay(2000);
 }
 
-void SetWaterLevel(){
-  //TODO: check and set water level
-  return;
+void readMoisture() {
+    moistureLevel = analogRead(MOISTURE_SENSOR_PIN);
+}
+
+void checkWaterLevel() {
+    int sensorValue = analogRead(WATER_LEVEL_SENSOR_PIN);
+    // Placeholder logic
+    if (sensorValue < 100) waterLevel = Empty;
+    else if (sensorValue < 300) waterLevel = Low;
+    else waterLevel = Full;
+}
+
+void controlPump() {
+    if (moistureLevel > MOISTURE_THRESHOLD && waterLevel != Empty) {
+        digitalWrite(PUMP_CONTROL_PIN, HIGH);
+        pumpState = Busy;
+    } else {
+        digitalWrite(PUMP_CONTROL_PIN, LOW);
+        pumpState = Ready;
+    }
+}
+
+void updateDisplay() {
+    display.clearDisplay();
+    display.setTextSize(2);
+    display.setTextColor(SH110X_WHITE);
+    display.setCursor(10, 10);
+    display.println(moistureLevel);
+
+    display.setTextSize(1);
+    display.setCursor(10, 40);
+    if (moistureLevel > MOISTURE_THRESHOLD) {
+        display.println("Needs Water!");
+    } else {
+        display.println("Happy Plant :)");
+    }
+
+    display.display();
 }
